@@ -1,12 +1,10 @@
 {
     "name": "cdcchen/upyun-client",
     "description": "upyun api client",
-    "version": "1.0.0",
     "keywords": ["http", "httpclient", "upyun", "upyunclient", "phphttp"],
-    "type": "php-lib",
     "homepage": "https://github.com/cdcchen/upyun-client",
-    "time": "2016-04-13 22:05:01",
-    "license": "BSD-3-Clause",
+    "time": "2016-04-27 22:05:01",
+    "license": "BSD-4-Clause",
     "support": {
         "issues": "https://github.com/cdcchen/upyun-client/issues",
         "wiki": "https://github.com/cdcchen/upyun-client/wiki",
