@@ -1,0 +1,36 @@
+{
+    "name": "cdcchen/upyun-client",
+    "description": "upyun oop",
+    "version": "1.0.0",
+    "keywords": ["http", "httpclient", "upyun", "upyunclient", "phphttp"],
+    "type": "php-lib",
+    "homepage": "https://github.com/cdcchen/php-plus",
+    "time": "2016-04-13 22:05:01",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/cdcchen/upyun-client/issues",
+        "wiki": "https://github.com/cdcchen/upyun-client/wiki",
+        "source": "https://github.com/cdcchen/upyun-client"
+    },
+    "authors": [
+        {
+            "name": "Dong Chen",
+            "email": "cdcchen@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=5.4.0",
+        "cdcchen/curl-client": "1.0.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "cdcchen\\upyun\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+          "dev-master": "1.0.x-dev"
+        }
+    }
+}
