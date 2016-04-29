@@ -9,20 +9,19 @@
 namespace cdcchen\upyun;
 
 
-use phpplus\net\CUrl;
+use cdcchen\net\curl\Client;
+use cdcchen\net\curl\HttpResponse;
 
-class UpYunClient
+class UpYunClient extends BaseClient
 {
-    const VERSION = '1.0';
+    const ENDPOINT_AUTO    = 'v0.api.upyun.com';
+    const ENDPOINT_TELECOM = 'v1.api.upyun.com';
+    const ENDPOINT_UNICOM  = 'v2.api.upyun.com';
+    const ENDPOINT_CMCC    = 'v3.api.upyun.com';
 
-    const ENDPOINT_AUTO       = 'v0.api.upyun.com';
-    const ENDPOINT_TELECOM    = 'v1.api.upyun.com';
-    const ENDPOINT_UNICOM     = 'v2.api.upyun.com';
-    const ENDPOINT_CMCC       = 'v3.api.upyun.com';
-
-    const CONTENT_TYPE       = 'Content-Type';
-    const CONTENT_MD5        = 'Content-MD5';
-    const CONTENT_SECRET     = 'Content-Secret';
+    const CONTENT_TYPE   = 'Content-Type';
+    const CONTENT_MD5    = 'Content-MD5';
+    const CONTENT_SECRET = 'Content-Secret';
 
     // 缩略图
     const X_GMKERL_THUMBNAIL = 'x-gmkerl-thumbnail';
@@ -32,18 +31,14 @@ class UpYunClient
     const X_GMKERL_UNSHARP   = 'x­gmkerl-unsharp';
     /*}}}*/
 
-    private $_scheme = 'http';
+    private $_scheme  = 'http';
     private $_bucketName;
     private $_username;
     private $_password;
     private $_timeout = 30;
 
-    protected $endpoint;
+    private $_endpoint;
 
-    /**
-     * @var null|CUrl
-     */
-    protected $_curl = null;
 
     public function __construct($bucket_name, $username, $password, $endpoint = null, $timeout = 30)
     {
@@ -55,61 +50,48 @@ class UpYunClient
         $this->_endpoint = is_null($endpoint) ? self::ENDPOINT_AUTO : $endpoint;
     }
 
-    public function getCurl()
-    {
-        if ($this->_curl === null) {
-            $options = [
-                CURLOPT_FOLLOWLOCATION => false,
-                CURLOPT_AUTOREFERER => false,
-            ];
-            $this->_curl = new CUrl($options);
-        }
-
-        return $this->_curl;
-    }
-
     public function writeFile($filePath, $body, $options = [], $mkdir = true)
     {
-        if (is_resource($body)) {
-            $length = (int)fstat($body)['size'];
+        if (is_file($body)) {
+            $body = file_get_contents($body);
         }
-        else {
-            $body = is_array($body) ? http_build_query($body) : $body;
-            $length = strlen($body);
-        }
+        $length = strlen($body);
 
         $headers = $this->buildHeaders('PUT', $filePath, $length);
         $headers['mkdir'] = (bool)$mkdir;
 
         $url = $this->buildRequestUrl($filePath);
-        $this->getCurl()->returnHeaders(true)
-            ->setHttpHeaders(array_merge($headers, $options))->put($url, $body);
+        $request = Client::put($url, null, array_merge($headers, $options))
+                         ->setContent($body);
+        $response = static::send($request);
 
-        $this->checkHttpStatusCode();
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return static::parseWriteFileResponse($response);
+        });
+    }
 
-        if ($this->getCurl()->getErrno() === 0) {
-            $info = $this->getCurl()->getResponseHeaders();
-            return [
-                'width' => (int)$info['x-upyun-width'],
-                'height' => (int)$info['x-upyun-height'],
-                'type' => $info['x-upyun-file-type'],
-                'frames' => (int)$info['x-upyun-frames'],
-            ];
-        }
-        else
-            return false;
+    private static function parseWriteFileResponse(HttpResponse $response)
+    {
+        $headers = $response->getHeaders();
+        return [
+            'width' => (int)$headers['x-upyun-width'],
+            'height' => (int)$headers['x-upyun-height'],
+            'type' => $headers['x-upyun-file-type'],
+            'frames' => (int)$headers['x-upyun-frames'],
+        ];
     }
 
     public function readFile($file)
     {
         $url = $this->buildRequestUrl($file);
         $headers = $this->buildHeaders('GET', $file);
-        $this->getCurl()
-            ->setHttpHeaders($headers)->get($url);
 
-        $this->checkHttpStatusCode();
+        $request = Client::get($url, null, $headers);
+        $response = static::send($request);
 
-        return $this->getCurl()->getErrno() === 0 ? $this->getCurl()->getRawData() : false;
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return $response->getContent();
+        });
     }
 
     public function deleteFile($file)
@@ -117,26 +99,27 @@ class UpYunClient
         return $this->deleteDir($file);
     }
 
-    public function fileInfo($file)
+    public function getFileInfo($file)
     {
         $url = $this->buildRequestUrl($file);
         $headers = $this->buildHeaders('HEAD', $file);
-        $this->getCurl()->returnHeaders()
-            ->setOption(CURLOPT_NOBODY, true)
-            ->setHttpHeaders($headers)->head($url);
 
-        $this->checkHttpStatusCode();
+        $request = Client::head($url, null, $headers);
+        $response = static::send($request);
 
-        if ($this->getCurl()->getErrno() === 0) {
-            $info = $this->getCurl()->getResponseHeaders();
-            return [
-                'type' => $info['x-upyun-file-type'],
-                'size' => (int)$info['x-upyun-file-size'],
-                'date' => (int)$info['x-upyun-file-date'],
-            ];
-        }
-        else
-            return false;
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return static::parseFileInfoResponse($response);
+        });
+    }
+
+    private static function parseFileInfoResponse(HttpResponse $response)
+    {
+        $headers = $response->getHeaders();
+        return [
+            'type' => $headers['x-upyun-file-type'],
+            'size' => (int)$headers['x-upyun-file-size'],
+            'date' => (int)$headers['x-upyun-file-date'],
+        ];
     }
 
     public function createDir($path, $mkdir = true)
@@ -145,52 +128,57 @@ class UpYunClient
         $headers = $this->buildHeaders('POST', $path);
         $headers['folder'] = true;
         $headers['mkdir'] = (bool)$mkdir;
-        $this->getCurl()
-            ->setHttpHeaders($headers)->post($url);
 
-        $this->checkHttpStatusCode();
+        $request = Client::post($url, null, $headers);
+        $response = static::send($request);
 
-        return $this->getCurl()->getErrno() === 0 && $this->getCurl()->getHttpCode() === 200;
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return true;
+        });
     }
 
     public function deleteDir($path)
     {
         $url = $this->buildRequestUrl($path);
         $headers = $this->buildHeaders('DELETE', $path);
-        $this->getCurl()
-            ->setHttpHeaders($headers)->delete($url);
 
-        $this->checkHttpStatusCode();
+        $request = Client::delete($url, null, $headers);
+        $response = static::send($request);
 
-        return $this->getCurl()->getErrno() === 0 && $this->getCurl()->getHttpCode() === 200;
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return true;
+        });
     }
 
     public function readDir($path)
     {
         $url = $this->buildRequestUrl($path);
         $headers = $this->buildHeaders('GET', $path);
-        $this->getCurl()
-            ->setHttpHeaders($headers)->get($url);
 
-        $this->checkHttpStatusCode();
+        $request = Client::get($url, null, $headers);
+        $response = static::send($request);
 
-        if ($this->getCurl()->getErrno() === 0) {
-            $body = $this->getCurl()->getRawData();
-            $lines = explode("\n", $body);
-            $files = [];
-            foreach ($lines as $line) {
-                list($name, $type, $size, $date) = explode("\t", $line);
-                $files[] = [
-                    'name' => $name,
-                    'type' => $type,
-                    'size' => (int)$size,
-                    'date' => (int)$date,
-                ];
-            }
-            return $files;
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return static::parseReadDirResponse($response);
+        });
+    }
+
+    private static function parseReadDirResponse(HttpResponse $response)
+    {
+        $body = $response->getContent();
+        $lines = explode("\n", $body);
+        $files = [];
+
+        foreach ($lines as $line) {
+            list($name, $type, $size, $date) = explode("\t", $line);
+            $files[] = [
+                'name' => $name,
+                'type' => $type,
+                'size' => (int)$size,
+                'date' => (int)$date,
+            ];
         }
-        else
-            return false;
+        return $files;
     }
 
     public function getBucketUsage()
@@ -198,36 +186,19 @@ class UpYunClient
         $path = '/?usage';
         $url = $this->buildRequestUrl($path);
         $headers = $this->buildHeaders('GET', $path);
-        $this->getCurl()
-            ->setHttpHeaders($headers)->get($url);
 
-        $this->checkHttpStatusCode();
+        $request = Client::get($url, null, $headers);
+        $response = static::send($request);
 
-        if ($this->getCurl()->getErrno() === 0)
-            return $this->getCurl()->getRawData();
-        else
-            return false;
-    }
-
-    public function version()
-    {
-        return self::VERSION;
-    }
-
-    private function checkHttpStatusCode()
-    {
-        $code = $this->getCurl()->getHttpCode();
-
-        if ($code === 200) return true;
-
-        throw new \Exception('request error', $code);
-
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return $response->getContent();
+        });
     }
 
     private function buildRequestUrl($path)
     {
         $path = $this->buildRequestPath($path);
-        return  "{$this->_scheme}://{$this->_endpoint}{$path}";
+        return "{$this->_scheme}://{$this->_endpoint}{$path}";
     }
 
     private function buildRequestPath($path)
