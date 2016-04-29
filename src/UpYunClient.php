@@ -12,44 +12,135 @@ namespace cdcchen\upyun;
 use cdcchen\net\curl\Client;
 use cdcchen\net\curl\HttpResponse;
 
+/**
+ * Class UpYunClient
+ * @package cdcchen\upyun
+ */
 class UpYunClient extends BaseClient
 {
+    /**
+     * auto chose endpoint
+     */
     const ENDPOINT_AUTO    = 'v0.api.upyun.com';
+    /**
+     * telecom
+     */
     const ENDPOINT_TELECOM = 'v1.api.upyun.com';
-    const ENDPOINT_UNICOM  = 'v2.api.upyun.com';
-    const ENDPOINT_CMCC    = 'v3.api.upyun.com';
+    /**
+     * unicom
+     */
+    const ENDPOINT_UNICOM = 'v2.api.upyun.com';
+    /**
+     * cmcc
+     */
+    const ENDPOINT_CMCC = 'v3.api.upyun.com';
 
+    /**
+     * content-type header name
+     */
     const CONTENT_TYPE   = 'Content-Type';
+    /**
+     * content-md5 header name
+     */
     const CONTENT_MD5    = 'Content-MD5';
+    /**
+     * content-secret header name
+     */
     const CONTENT_SECRET = 'Content-Secret';
 
-    // 缩略图
+    // thumbnail
     const X_GMKERL_THUMBNAIL = 'x-gmkerl-thumbnail';
-    const X_GMKERL_TYPE      = 'x-gmkerl-type';
-    const X_GMKERL_VALUE     = 'x-gmkerl-value';
-    const X_GMKERL_QUALITY   = 'x­gmkerl-quality';
-    const X_GMKERL_UNSHARP   = 'x­gmkerl-unsharp';
-    /*}}}*/
+    const X_GMKERL_TYPE    = 'x-gmkerl-type';
+    const X_GMKERL_VALUE   = 'x-gmkerl-value';
+    const X_GMKERL_QUALITY = 'x­gmkerl-quality';
+    const X_GMKERL_UNSHARP = 'x­gmkerl-unsharp';
 
+    /**
+     * @var string
+     */
     private $_scheme  = 'http';
+    /**
+     * @var string
+     */
     private $_bucketName;
+    /**
+     * @var string
+     */
     private $_username;
+    /**
+     * @var string
+     */
     private $_password;
+    /**
+     * @var int
+     */
     private $_timeout = 30;
 
+    /**
+     * @var string
+     */
     private $_endpoint;
 
 
+    /**
+     * UpYunClient constructor.
+     * @param string $bucket_name
+     * @param string $username
+     * @param string $password
+     * @param null|string $endpoint
+     * @param int $timeout
+     */
     public function __construct($bucket_name, $username, $password, $endpoint = null, $timeout = 30)
+    {
+        $this->setBucket($bucket_name, $username, $password)
+            ->setEndpoint($endpoint)
+            ->setTimeout($timeout);
+    }
+
+    /**
+     * @param string $bucket_name
+     * @param string $username
+     * @param string $password
+     * @return $this
+     */
+    public function setBucket($bucket_name, $username, $password)
     {
         $this->_bucketName = $bucket_name;
         $this->_username = $username;
         $this->_password = md5($password);
-        $this->_timeout = $timeout;
 
-        $this->_endpoint = is_null($endpoint) ? self::ENDPOINT_AUTO : $endpoint;
+        return $this;
     }
 
+    /**
+     * @param string $endpoint
+     * @return $this
+     */
+    public function setEndpoint($endpoint)
+    {
+        $this->_endpoint = $endpoint ?: self::ENDPOINT_AUTO;
+        return $this;
+    }
+
+    /**
+     * @param int $seconds
+     * @return $this
+     */
+    public function setTimeout($seconds)
+    {
+        $this->_timeout = $seconds;
+        return $this;
+    }
+
+    /**
+     * @param string $filePath
+     * @param string $body
+     * @param array $options
+     * @param bool $mkdir
+     * @return array
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function writeFile($filePath, $body, $options = [], $mkdir = true)
     {
         if (is_file($body)) {
@@ -70,6 +161,10 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param HttpResponse $response
+     * @return array
+     */
     private static function parseWriteFileResponse(HttpResponse $response)
     {
         $headers = $response->getHeaders();
@@ -81,6 +176,12 @@ class UpYunClient extends BaseClient
         ];
     }
 
+    /**
+     * @param string $file
+     * @return string
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function readFile($file)
     {
         $url = $this->buildRequestUrl($file);
@@ -94,11 +195,21 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param string $file
+     * @return bool
+     */
     public function deleteFile($file)
     {
         return $this->deleteDir($file);
     }
 
+    /**
+     * @param string $file
+     * @return array
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function getFileInfo($file)
     {
         $url = $this->buildRequestUrl($file);
@@ -112,6 +223,10 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param HttpResponse $response
+     * @return array
+     */
     private static function parseFileInfoResponse(HttpResponse $response)
     {
         $headers = $response->getHeaders();
@@ -122,6 +237,13 @@ class UpYunClient extends BaseClient
         ];
     }
 
+    /**
+     * @param string $path
+     * @param bool $mkdir
+     * @return bool
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function createDir($path, $mkdir = true)
     {
         $url = $this->buildRequestUrl($path);
@@ -137,6 +259,12 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param string $path
+     * @return bool
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function deleteDir($path)
     {
         $url = $this->buildRequestUrl($path);
@@ -150,6 +278,12 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param string $path
+     * @return array
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function readDir($path)
     {
         $url = $this->buildRequestUrl($path);
@@ -163,6 +297,10 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param HttpResponse $response
+     * @return array
+     */
     private static function parseReadDirResponse(HttpResponse $response)
     {
         $body = $response->getContent();
@@ -181,6 +319,11 @@ class UpYunClient extends BaseClient
         return $files;
     }
 
+    /**
+     * @return string
+     * @throws RequestException
+     * @throws ResponseException
+     */
     public function getBucketUsage()
     {
         $path = '/?usage';
@@ -195,17 +338,31 @@ class UpYunClient extends BaseClient
         });
     }
 
+    /**
+     * @param string $path
+     * @return string
+     */
     private function buildRequestUrl($path)
     {
         $path = $this->buildRequestPath($path);
         return "{$this->_scheme}://{$this->_endpoint}{$path}";
     }
 
+    /**
+     * @param string $path
+     * @return string
+     */
     private function buildRequestPath($path)
     {
         return '/' . $this->_bucketName . '/' . ltrim($path, '/');
     }
 
+    /**
+     * @param string $method
+     * @param string $path
+     * @param int $length
+     * @return array
+     */
     private function buildHeaders($method, $path, $length = 0)
     {
         $uri = $this->buildRequestPath($path);
@@ -221,11 +378,21 @@ class UpYunClient extends BaseClient
         ];
     }
 
+    /**
+     * @return string
+     */
     private function getDate()
     {
         return gmdate('D, d M Y H:i:s \G\M\T');
     }
 
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param string $date
+     * @param int $length
+     * @return string
+     */
     private function generateSignature($method, $uri, $date, $length)
     {
         $method = strtoupper($method);
