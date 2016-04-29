@@ -49,8 +49,8 @@ abstract class BaseClient
      */
     protected static function handleResponse(HttpResponse $response, callable $success = null, callable $failed = null)
     {
-        $headers = $response->getHeaders();
-        if ($headers['http-code'] == 200) {
+        $httpCode = (int)$response->getHeader('http-code');
+        if ($httpCode === 200) {
             return call_user_func($success, $response);
         } else {
             if ($failed) {
