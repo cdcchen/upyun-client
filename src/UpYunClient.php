@@ -105,6 +105,10 @@ class UpYunClient extends BaseClient
      */
     public function setBucket($bucket_name, $username, $password)
     {
+        if (empty($bucket_name) || empty($username) || empty($password)) {
+            throw new \InvalidArgumentException('bucket_name|username|password is required.');
+        }
+        
         $this->_bucketName = $bucket_name;
         $this->_username = $username;
         $this->_password = md5($password);
