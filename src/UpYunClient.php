@@ -21,7 +21,7 @@ class UpYunClient extends BaseClient
     /**
      * auto chose endpoint
      */
-    const ENDPOINT_AUTO    = 'v0.api.upyun.com';
+    const ENDPOINT_AUTO = 'v0.api.upyun.com';
     /**
      * telecom
      */
@@ -38,11 +38,11 @@ class UpYunClient extends BaseClient
     /**
      * content-type header name
      */
-    const CONTENT_TYPE   = 'Content-Type';
+    const CONTENT_TYPE = 'Content-Type';
     /**
      * content-md5 header name
      */
-    const CONTENT_MD5    = 'Content-MD5';
+    const CONTENT_MD5 = 'Content-MD5';
     /**
      * content-secret header name
      */
@@ -50,15 +50,15 @@ class UpYunClient extends BaseClient
 
     // thumbnail
     const X_GMKERL_THUMBNAIL = 'x-gmkerl-thumbnail';
-    const X_GMKERL_TYPE    = 'x-gmkerl-type';
-    const X_GMKERL_VALUE   = 'x-gmkerl-value';
-    const X_GMKERL_QUALITY = 'x­gmkerl-quality';
-    const X_GMKERL_UNSHARP = 'x­gmkerl-unsharp';
+    const X_GMKERL_TYPE      = 'x-gmkerl-type';
+    const X_GMKERL_VALUE     = 'x-gmkerl-value';
+    const X_GMKERL_QUALITY   = 'x­gmkerl-quality';
+    const X_GMKERL_UNSHARP   = 'x­gmkerl-unsharp';
 
     /**
      * @var string
      */
-    private $_scheme  = 'http';
+    private $_scheme = 'http';
     /**
      * @var string
      */
@@ -93,8 +93,8 @@ class UpYunClient extends BaseClient
     public function __construct($bucket_name, $username, $password, $endpoint = null, $timeout = 30)
     {
         $this->setBucket($bucket_name, $username, $password)
-            ->setEndpoint($endpoint)
-            ->setTimeout($timeout);
+             ->setEndpoint($endpoint)
+             ->setTimeout($timeout);
     }
 
     /**
@@ -108,7 +108,7 @@ class UpYunClient extends BaseClient
         if (empty($bucket_name) || empty($username) || empty($password)) {
             throw new \InvalidArgumentException('bucket_name|username|password is required.');
         }
-        
+
         $this->_bucketName = $bucket_name;
         $this->_username = $username;
         $this->_password = md5($password);
@@ -171,13 +171,17 @@ class UpYunClient extends BaseClient
      */
     private static function parseWriteFileResponse(HttpResponse $response)
     {
-        $headers = $response->getHeaders();
-        return [
-            'width' => (int)$headers['x-upyun-width'],
-            'height' => (int)$headers['x-upyun-height'],
-            'type' => $headers['x-upyun-file-type'],
-            'frames' => (int)$headers['x-upyun-frames'],
-        ];
+        if ($response->hasHeader('x-upyun-width')) {
+            $headers = $response->getHeaders();
+            return [
+                'width' => (int)$headers['x-upyun-width'],
+                'height' => (int)$headers['x-upyun-height'],
+                'type' => $headers['x-upyun-file-type'],
+                'frames' => (int)$headers['x-upyun-frames'],
+            ];
+        }
+
+        return true;
     }
 
     /**
