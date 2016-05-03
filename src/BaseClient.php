@@ -9,9 +9,9 @@
 namespace cdcchen\upyun;
 
 
-use Exception;
 use cdcchen\net\curl\HttpRequest;
 use cdcchen\net\curl\HttpResponse;
+use cdcchen\net\curl\RequestException as CUrlRequestException;
 
 abstract class BaseClient
 {
@@ -31,7 +31,7 @@ abstract class BaseClient
             } else {
                 return call_user_func($success, $response);
             }
-        } catch (\Exception $e) {
+        } catch (CUrlRequestException $e) {
             if ($failed) {
                 return call_user_func($failed, $request);
             } else {
