@@ -147,7 +147,7 @@ class UpYunClient extends BaseClient
      */
     public function writeFile($filePath, $body, $options = [], $mkdir = true)
     {
-        if (is_file($body)) {
+        if (@is_file($body)) {
             $body = file_get_contents($body);
         }
         $length = strlen($body);
