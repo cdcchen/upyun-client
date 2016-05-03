@@ -167,7 +167,7 @@ class UpYunClient extends BaseClient
 
     /**
      * @param HttpResponse $response
-     * @return array
+     * @return array|bool
      */
     private static function parseWriteFileResponse(HttpResponse $response)
     {
