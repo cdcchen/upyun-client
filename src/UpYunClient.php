@@ -158,7 +158,7 @@ class UpYunClient extends BaseClient
         $url = $this->buildRequestUrl($filePath);
         $request = Client::put($url, null, array_merge($headers, $options))
                          ->setContent($body);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return static::parseWriteFileResponse($response);
@@ -196,7 +196,7 @@ class UpYunClient extends BaseClient
         $headers = $this->buildHeaders('GET', $file);
 
         $request = Client::get($url, null, $headers);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return $response->getContent();
@@ -224,7 +224,7 @@ class UpYunClient extends BaseClient
         $headers = $this->buildHeaders('HEAD', $file);
 
         $request = Client::head($url, null, $headers);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return static::parseFileInfoResponse($response);
@@ -260,7 +260,7 @@ class UpYunClient extends BaseClient
         $headers['mkdir'] = (bool)$mkdir;
 
         $request = Client::post($url, null, $headers);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return true;
@@ -279,7 +279,7 @@ class UpYunClient extends BaseClient
         $headers = $this->buildHeaders('DELETE', $path);
 
         $request = Client::delete($url, null, $headers);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return true;
@@ -298,7 +298,7 @@ class UpYunClient extends BaseClient
         $headers = $this->buildHeaders('GET', $path);
 
         $request = Client::get($url, null, $headers);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return static::parseReadDirResponse($response);
@@ -339,7 +339,7 @@ class UpYunClient extends BaseClient
         $headers = $this->buildHeaders('GET', $path);
 
         $request = Client::get($url, null, $headers);
-        $response = static::send($request);
+        $response = static::sendRequest($request);
 
         return static::handleResponse($response, function (HttpResponse $response) {
             return $response->getContent();
