@@ -13,7 +13,7 @@ use cdcchen\net\curl\HttpRequest;
 use cdcchen\net\curl\HttpResponse;
 use cdcchen\net\curl\RequestException as CUrlRequestException;
 
-abstract class BaseClient
+abstract class BaseClient extends Object
 {
     /**
      * @param HttpRequest $request
@@ -22,7 +22,7 @@ abstract class BaseClient
      * @return bool|\cdcchen\net\curl\HttpResponse
      * @throws RequestException
      */
-    protected static function send(HttpRequest $request, callable $success = null, callable $failed = null)
+    protected static function sendRequest(HttpRequest $request, callable $success = null, callable $failed = null)
     {
         try {
             $response = $request->send();
