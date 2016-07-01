@@ -347,6 +347,24 @@ class UpYunClient extends BaseClient
     }
 
     /**
+     * @param string|array $urls
+     * @return mixed
+     * @throws RequestException
+     * @throws ResponseException
+     */
+    public function purgeUrl($urls)
+    {
+        $request = new PurgeRequest();
+        $request->buildHeaders($urls, $this->_bucketName, $this->_username, $this->_password);
+        $request->setData(['purge' => join("\n", (array)$$urls)]);
+        $response = static::sendRequest($request);
+
+        return static::handleResponse($response, function (HttpResponse $response) {
+            return $response->getContent();
+        });
+    }
+
+    /**
      * @param string $path
      * @return string
      */
