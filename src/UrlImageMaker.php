@@ -75,7 +75,7 @@ class UrlImageMaker extends Object
     public function getUrl()
     {
         $url = $this->url;
-        $params = static::buildParams($this->getParams());
+        $params = $this->getParamsUrl();
 
         if ($this->version || $params) {
             $url .= $this->delimiter . $this->version . $params;
@@ -83,6 +83,11 @@ class UrlImageMaker extends Object
 
         return $url;
 
+    }
+
+    public function getParamsUrl()
+    {
+        return static::buildParams($this->getParams());
     }
 
     /**
@@ -465,7 +470,7 @@ class UrlImageMaker extends Object
      */
     public function brdcolor($color)
     {
-        if ($this->validateColor($color)) {
+        if (!$this->validateAlphaColor($color)) {
             throw new \InvalidArgumentException("Color: {$color} is not valid color.");
         }
         return $this->setParam('brdcolor', $color);
@@ -498,7 +503,7 @@ class UrlImageMaker extends Object
      */
     public function cvscolor($color)
     {
-        if ($this->validateColor($color)) {
+        if (!$this->validateAlphaColor($color)) {
             throw new \InvalidArgumentException("Color: {$color} is not valid color.");
         }
         return $this->setParam('cvscolor', $color);
@@ -520,7 +525,7 @@ class UrlImageMaker extends Object
         if (!in_array($orientation, $orientations)) {
             throw new \InvalidArgumentException("Orientation: {$orientation} is not valid value.");
         }
-        if (!static::validateColor($startColor) || !static::validateColor($stopColor)) {
+        if (!static::validateAlphaColor($startColor) || !static::validateAlphaColor($stopColor)) {
             throw new \InvalidArgumentException("StartColor: {$startColor} or StopColor: {$stopColor} is not valid value.");
         }
 

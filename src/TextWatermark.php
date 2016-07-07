@@ -89,7 +89,7 @@ class TextWatermark extends Watermark
      */
     public function setColor($color)
     {
-        if (static::validateColor($color)) {
+        if (!static::validateColor($color)) {
             throw new \InvalidArgumentException("$color is not a valid hex color value");
         }
         return $this->setParam('color', $color);
@@ -101,7 +101,7 @@ class TextWatermark extends Watermark
      */
     public function setBorder($color)
     {
-        if (static::validateAlphaColor($color)) {
+        if (!static::validateAlphaColor($color)) {
             throw new \InvalidArgumentException("$color is not a valid hex alpha color value");
         }
         return $this->setParam('border', $color);

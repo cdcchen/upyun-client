@@ -69,7 +69,7 @@ abstract class Watermark extends Object
      */
     public function setAlign($align)
     {
-        if (!in_array($align, ImageMaker::aligns())) {
+        if (!in_array($align, UrlImageMaker::aligns())) {
             throw new \InvalidArgumentException("Align: $align is not a valid value.");
         }
         return $this->setParam('align', $align);
