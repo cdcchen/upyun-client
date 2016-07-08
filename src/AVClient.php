@@ -9,12 +9,89 @@
 namespace cdcchen\upyun;
 
 
-use cdcchen\upyun\base\BaseClient;
+use cdcchen\net\curl\HttpResponse;
+use cdcchen\upyun\av\BaseClient;
+use cdcchen\upyun\av\FetchFileRequest;
+use cdcchen\upyun\av\PreTreatmentTaskRequest;
+use cdcchen\upyun\av\TaskResultRequest;
+use cdcchen\upyun\av\TaskStatusRequest;
 
+/**
+ * Class AVClient
+ * @package cdcchen\upyun
+ */
 class AVClient extends BaseClient
 {
-    public function __construct($bucketName, $username, $password, $endpoint = null, $timeout = 30)
-    {
+    /**
+     * api host url
+     */
+    protected static $host = 'http://p0.api.upyun.com';
 
+    /**
+     * @param string $bucketName
+     * @param string $notifyUrl
+     * @param string $source
+     * @param array $tasks
+     * @return string
+     * @throws base\RequestException
+     * @throws base\ResponseException
+     */
+    public function createPreTreatmentTask($bucketName, $notifyUrl, $source, $tasks)
+    {
+        $request = new PreTreatmentTaskRequest();
+        $request->setBucketName($bucketName)
+                ->setNotifyUrl($notifyUrl)
+                ->setSource($source)
+                ->setTasks($tasks);
+
+        return $this->sendRequest($request, function (HttpResponse $response) {
+            return $response->getData();
+        });
+    }
+
+    /**
+     * @param $bucket
+     * @param $tasks
+     * @return array
+     * @throws base\RequestException
+     * @throws base\ResponseException
+     */
+    public function queryTaskStatus($bucket, $tasks)
+    {
+        $request = new TaskStatusRequest();
+        $request->setBucketName($bucket)->setTaskIds($tasks);
+
+        return $this->sendRequest($request, function (HttpResponse $response) {
+            $data = $response->getData();
+            return $data['tasks'];
+        });
+    }
+
+    /**
+     * @param $bucket
+     * @param $tasks
+     * @return array
+     * @throws base\RequestException
+     * @throws base\ResponseException
+     */
+    public function queryTaskResult($bucket, $tasks)
+    {
+        $request = new TaskResultRequest();
+        $request->setBucketName($bucket)->setTaskIds($tasks);
+
+        return $this->sendRequest($request, function (HttpResponse $response) {
+            $data = $response->getData();
+            return $data['tasks'];
+        });
+    }
+
+    public function fetchFile($bucketName, $notifyUrl, array $tasks)
+    {
+        $request = new FetchFileRequest();
+        $request->setBucketName($bucketName)->setNotifyUrl($notifyUrl)->setTasks($tasks);
+
+        return $this->sendRequest($request, function (HttpResponse $response) {
+            return $response->getData();
+        });
     }
 }
