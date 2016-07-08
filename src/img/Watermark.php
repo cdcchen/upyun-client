@@ -6,7 +6,11 @@
  * Time: 14:35
  */
 
-namespace cdcchen\upyun;
+namespace cdcchen\upyun\img;
+
+use cdcchen\upyun\base\BoolToStringTrait;
+use cdcchen\upyun\base\Object;
+use cdcchen\upyun\base\ParamsTrait;
 
 
 /**

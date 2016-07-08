@@ -6,7 +6,7 @@
  * Time: 13:06
  */
 
-namespace cdcchen\upyun;
+namespace cdcchen\upyun\base;
 
 
 /**

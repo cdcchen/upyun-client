@@ -6,7 +6,7 @@
  * Time: 10:00
  */
 
-namespace cdcchen\upyun;
+namespace cdcchen\upyun\base;
 
 
 use cdcchen\net\curl\HttpRequest;

@@ -6,7 +6,11 @@
  * Time: 13:46
  */
 
-namespace cdcchen\upyun;
+namespace cdcchen\upyun\img;
+
+use cdcchen\upyun\base\BoolToStringTrait;
+use cdcchen\upyun\base\Object;
+use cdcchen\upyun\base\ParamsTrait;
 
 
 /**
@@ -153,7 +157,7 @@ class UrlImageMaker extends Object
     private static function buildParams($params)
     {
         $paramStr = '';
-        foreach ($params as $name => $value) {
+        foreach ((array)$params as $name => $value) {
             if (is_array($value)) {
                 $paramStr .= join('', $value);
             } else {

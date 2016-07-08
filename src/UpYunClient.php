@@ -11,6 +11,7 @@ namespace cdcchen\upyun;
 
 use cdcchen\net\curl\Client;
 use cdcchen\net\curl\HttpResponse;
+use cdcchen\upyun\base\BaseClient;
 
 /**
  * Class UpYunClient
@@ -84,32 +85,32 @@ class UpYunClient extends BaseClient
 
     /**
      * UpYunClient constructor.
-     * @param string $bucket_name
+     * @param string $bucketName
      * @param string $username
      * @param string $password
      * @param null|string $endpoint
      * @param int $timeout
      */
-    public function __construct($bucket_name, $username, $password, $endpoint = null, $timeout = 30)
+    public function __construct($bucketName, $username, $password, $endpoint = null, $timeout = 30)
     {
-        $this->setBucket($bucket_name, $username, $password)
+        $this->setBucket($bucketName, $username, $password)
              ->setEndpoint($endpoint)
              ->setTimeout($timeout);
     }
 
     /**
-     * @param string $bucket_name
+     * @param string $bucketName
      * @param string $username
      * @param string $password
      * @return $this
      */
-    public function setBucket($bucket_name, $username, $password)
+    public function setBucket($bucketName, $username, $password)
     {
-        if (empty($bucket_name) || empty($username) || empty($password)) {
+        if (empty($bucketName) || empty($username) || empty($password)) {
             throw new \InvalidArgumentException('bucket_name|username|password is required.');
         }
 
-        $this->_bucketName = $bucket_name;
+        $this->_bucketName = $bucketName;
         $this->_username = $username;
         $this->_password = md5($password);
 
@@ -140,12 +141,12 @@ class UpYunClient extends BaseClient
      * @param string $filePath
      * @param string $body
      * @param array $options
-     * @param bool $mkdir
+     * @param bool $mkDir
      * @return array
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
-    public function writeFile($filePath, $body, $options = [], $mkdir = true)
+    public function writeFile($filePath, $body, $options = [], $mkDir = true)
     {
         if (@is_file($body)) {
             $body = file_get_contents($body);
@@ -153,7 +154,7 @@ class UpYunClient extends BaseClient
         $length = strlen($body);
 
         $headers = $this->buildHeaders('PUT', $filePath, $length);
-        $headers['mkdir'] = (bool)$mkdir;
+        $headers['mkdir'] = (bool)$mkDir;
 
         $url = $this->buildRequestUrl($filePath);
         $request = Client::put($url, null, array_merge($headers, $options))
@@ -187,8 +188,8 @@ class UpYunClient extends BaseClient
     /**
      * @param string $file
      * @return string
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
     public function readFile($file)
     {
@@ -215,8 +216,8 @@ class UpYunClient extends BaseClient
     /**
      * @param string $file
      * @return array
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
     public function getFileInfo($file)
     {
@@ -247,17 +248,17 @@ class UpYunClient extends BaseClient
 
     /**
      * @param string $path
-     * @param bool $mkdir
+     * @param bool $mkDir
      * @return bool
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
-    public function createDir($path, $mkdir = true)
+    public function createDir($path, $mkDir = true)
     {
         $url = $this->buildRequestUrl($path);
         $headers = $this->buildHeaders('POST', $path);
         $headers['folder'] = true;
-        $headers['mkdir'] = (bool)$mkdir;
+        $headers['mkdir'] = (bool)$mkDir;
 
         $request = Client::post($url, null, $headers);
         $response = static::sendRequest($request);
@@ -270,8 +271,8 @@ class UpYunClient extends BaseClient
     /**
      * @param string $path
      * @return bool
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
     public function deleteDir($path)
     {
@@ -289,8 +290,8 @@ class UpYunClient extends BaseClient
     /**
      * @param string $path
      * @return array
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
     public function readDir($path)
     {
@@ -329,8 +330,8 @@ class UpYunClient extends BaseClient
 
     /**
      * @return string
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
     public function getBucketUsage()
     {
@@ -349,8 +350,8 @@ class UpYunClient extends BaseClient
     /**
      * @param string|array $urls
      * @return mixed
-     * @throws RequestException
-     * @throws ResponseException
+     * @throws \cdcchen\upyun\base\RequestException
+     * @throws \cdcchen\upyun\base\ResponseException
      */
     public function purgeUrl($urls)
     {

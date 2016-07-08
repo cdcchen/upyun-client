@@ -7,7 +7,7 @@
  * Time: 22:01
  */
 
-namespace cdcchen\upyun;
+namespace cdcchen\upyun\base;
 
 
 use Exception;
