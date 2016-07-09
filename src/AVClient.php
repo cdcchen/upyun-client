@@ -86,6 +86,14 @@ class AVClient extends BaseClient
         });
     }
 
+    /**
+     * @param string $bucketName
+     * @param FetchFileTask[] $tasks
+     * @param string $notifyUrl
+     * @return array
+     * @throws base\RequestException
+     * @throws base\ResponseException
+     */
     public function fetchFiles($bucketName, array $tasks, $notifyUrl)
     {
         $request = new FetchFileRequest();
@@ -96,6 +104,17 @@ class AVClient extends BaseClient
         });
     }
 
+    /**
+     * @param string $bucketName
+     * @param string $notifyUrl
+     * @param string $url
+     * @param string $saveAs
+     * @param bool $random
+     * @param bool $overwrite
+     * @return array
+     * @throws base\RequestException
+     * @throws base\ResponseException
+     */
     public function fetchFile($bucketName, $notifyUrl, $url, $saveAs, $random = false, $overwrite = true)
     {
         $task = (new FetchFileTask())->setUrl($url)
