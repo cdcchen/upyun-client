@@ -12,6 +12,7 @@ namespace cdcchen\upyun;
 use cdcchen\net\curl\HttpResponse;
 use cdcchen\upyun\av\BaseClient;
 use cdcchen\upyun\av\FetchFileRequest;
+use cdcchen\upyun\av\FetchFileTask;
 use cdcchen\upyun\av\PreTreatmentTaskRequest;
 use cdcchen\upyun\av\TaskResultRequest;
 use cdcchen\upyun\av\TaskStatusRequest;
@@ -85,10 +86,25 @@ class AVClient extends BaseClient
         });
     }
 
-    public function fetchFile($bucketName, $notifyUrl, array $tasks)
+    public function fetchFiles($bucketName, array $tasks, $notifyUrl)
     {
         $request = new FetchFileRequest();
         $request->setBucketName($bucketName)->setNotifyUrl($notifyUrl)->setTasks($tasks);
+
+        return $this->sendRequest($request, function (HttpResponse $response) {
+            return $response->getData();
+        });
+    }
+
+    public function fetchFile($bucketName, $notifyUrl, $url, $saveAs, $random = false, $overwrite = true)
+    {
+        $task = (new FetchFileTask())->setUrl($url)
+                                     ->setSaveAs($saveAs)
+                                     ->setRandom($random)
+                                     ->setOverwrite($overwrite);
+
+        $request = new FetchFileRequest();
+        $request->setBucketName($bucketName)->setNotifyUrl($notifyUrl)->setTasks([$task]);
 
         return $this->sendRequest($request, function (HttpResponse $response) {
             return $response->getData();
