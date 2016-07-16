@@ -6,7 +6,7 @@
 composer require cdcchen/upyun-client:^1.0.0
 ```
 
-## 使用教程
+## 文件操作使用教程
 
 ### 实例化 UpYunClient
 
@@ -73,3 +73,17 @@ $data = $client->readDir($path);
 ```
 $data = $client->getBucketUsage();
 ```
+
+
+## Url 作图接口
+
+```php
+$delimiter = '!';
+$maker = new UrlImageMaker($url, $delimiter);
+$maker->fw(200)->scale(2);
+$url = $maker->getUrl();
+```
+
+所有url做图接口方法直接使用又拍云官方文档对应的作图参数名称。
+
+具体查看：<http://docs.upyun.com/cloud/image/#_7>

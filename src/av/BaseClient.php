@@ -12,6 +12,7 @@ namespace cdcchen\upyun\av;
 use cdcchen\net\curl\HttpRequest;
 use cdcchen\net\curl\HttpResponse;
 use cdcchen\upyun\base\Object;
+use cdcchen\upyun\base\ParamsTrait;
 use cdcchen\upyun\base\RequestException;
 use cdcchen\upyun\base\ResponseException;
 
@@ -22,37 +23,48 @@ use cdcchen\upyun\base\ResponseException;
  */
 abstract class BaseClient extends Object
 {
-    /**
-     * api host url
-     */
-    protected static $host = 'https://qyapi.weixin.qq.com';
+    use ParamsTrait;
 
     /**
-     * @var array
+     * @var string
      */
-    private $_params = [];
+    protected $username;
+    /**
+     * @var string
+     */
+    protected $password;
 
     /**
-     * @param string $name
-     * @param mixed $value
-     * @return $this
+     * @var string api host url
      */
-    public function setParam($name, $value)
+    protected static $host;
+
+
+    /**
+     * BaseClient constructor.
+     * @param $username
+     * @param $password
+     */
+    public function __construct($username, $password)
     {
-        $this->_params[$name] = $value;
-        return $this;
+        $this->username = $username;
+        $this->password = md5($password);
     }
 
     /**
-     * @param array $params
-     * @return $this
+     * @return string
      */
-    public function setParams(array $params)
+    public function getUsername()
     {
-        foreach ($params as $name => $value) {
-            $this->setParam($name, $value);
-        }
-        return $this;
+        return $this->username;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassword()
+    {
+        return $this->password;
     }
 
     /**
@@ -69,15 +81,10 @@ abstract class BaseClient extends Object
      */
     private function buildHttpRequest(BaseRequest $request)
     {
-        $httpRequest = (new HttpRequest())->setSSL()
-                                          ->addFiles('media_file', $request->getFiles())
-                                          ->setMethod($request->getMethod())
-                                          ->setUrl($request->getRequestUrl());
+        $httpRequest = (new HttpRequest())->setMethod($request->getMethod())
+                                          ->setUrl($request->getRequestUrl())
+                                          ->addHeaders($request->getHeaders());
 
-        if ($request->isPost()) {
-            $httpRequest->setFormat(HttpRequest::FORMAT_JSON);
-        }
-//print_r($request->getData());exit;
         if (is_array($request->getData())) {
             $httpRequest->setData($request->getData());
         } else {
@@ -100,11 +107,10 @@ abstract class BaseClient extends Object
         $this->prepare();
 
         $request->setHost(static::$host)
-                ->mergeQueryParams($this->_params);
-        $request->validate();
+                ->setAuthorization($this)
+                ->validate();
 
         $httpRequest = $this->buildHttpRequest($request);
-
         /* @var HttpResponse $response */
         $response = $httpRequest->send();
 
@@ -120,4 +126,6 @@ abstract class BaseClient extends Object
 
         return $success ? call_user_func($success, $response) : $response;
     }
+
+
 }

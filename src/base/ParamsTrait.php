@@ -16,9 +16,9 @@ namespace cdcchen\upyun\base;
 trait ParamsTrait
 {
     /**
-     * @var
+     * @var array
      */
-    private $_params;
+    private $_params = [];
 
     /**
      * @param string $name

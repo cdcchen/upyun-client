@@ -32,10 +32,6 @@ abstract class BaseRequest extends Object
      */
     private $_host;
     /**
-     * @var array
-     */
-    private $_queryParams = [];
-    /**
      * @var mixed
      */
     private $_data;
@@ -55,6 +51,7 @@ abstract class BaseRequest extends Object
     {
         $this->init();
         $this->setDefaultParams();
+        $this->setDate();
     }
 
     /**
@@ -82,44 +79,39 @@ abstract class BaseRequest extends Object
         return $this;
     }
 
+    public function setAuthorization(BaseClient $client)
+    {
+        $authorization = $this->generateSignature($client->getUsername(), $client->getPassword());
+        return $this->setHeader('Authorization', $authorization);
+    }
+
+    private function setDate()
+    {
+        return $this->setHeader('Date', date(gmdate('D, d M Y H:i:s \G\M\T')));
+    }
+
     /**
      * @return string
      */
     public function getRequestUrl()
     {
-        $url = $this->_host . '/' . ltrim($this->action, '/');
-        return $url . '?' . http_build_query($this->getQueryParams());
+        return $this->_host . '/' . ltrim($this->action, '/');
     }
 
     /**
      * @param string $name
-     * @param mixed $value
+     * @param string|int $value
      * @return $this
      */
-    protected function setQueryParam($name, $value)
+    protected function setHeader($name, $value)
     {
-        $this->_queryParams[$name] = $value;
+        $this->_headers[$name] = $value;
         return $this;
     }
 
-    /**
-     * @param array $params
-     * @return $this
-     */
-    public function mergeQueryParams(array $params)
+    public function getHeaders()
     {
-        foreach ($params as $name => $value) {
-            $this->setQueryParam($name, $value);
-        }
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    private function getQueryParams()
-    {
-        return $this->_queryParams;
+        return $this->_headers;
     }
 
     /**
@@ -256,7 +248,7 @@ abstract class BaseRequest extends Object
             return true;
         }
 
-        $params = is_array($this->_data) ? array_merge($this->_queryParams, $this->_data) : $this->_queryParams;
+        $params = is_array($this->_data) ? $this->_data : [];
         foreach ($requireParams as $param) {
             $parts = explode('|', $param);
             if (isset($parts[1])) {
@@ -274,4 +266,23 @@ abstract class BaseRequest extends Object
         return true;
     }
 
+    /**
+     * @param string $username
+     * @param string $password
+     * @return string
+     */
+    private function generateSignature($username, $password)
+    {
+        $params = $this->getData() ?: [];
+        ksort($params);
+
+        $signatureStr = $username;
+        foreach ($params as $name => $value) {
+            $signatureStr .= $name . $value;
+        }
+        $signatureStr .= $password;
+        $signature = md5($signatureStr);
+
+        return "UPYUN {$username}:{$signature}";
+    }
 }
