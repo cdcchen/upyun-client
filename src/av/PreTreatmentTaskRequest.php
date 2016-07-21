@@ -9,6 +9,10 @@
 namespace cdcchen\upyun\av;
 
 
+    /**
+     * Class PreTreatmentTaskRequest
+     * @package cdcchen\upyun\av
+     */
 /**
  * Class PreTreatmentTaskRequest
  * @package cdcchen\upyun\av
@@ -23,6 +27,11 @@ class PreTreatmentTaskRequest extends BaseRequest
      * @var string
      */
     protected $action = '/pretreatment';
+
+    /**
+     * @var AVTask[]
+     */
+    private $_tasks = [];
 
 
     /**
@@ -62,15 +71,45 @@ class PreTreatmentTaskRequest extends BaseRequest
     }
 
     /**
-     * @param array $tasks
+     * @param AVTask $task
      * @return $this
-     * @todo Task class not defined
+     */
+    public function addTask(AVTask $task)
+    {
+        $this->_tasks[] = $task;
+        return $this;
+    }
+
+    /**
+     * @param AVTask[] $tasks
+     * @return $this
+     */
+    public function addTasks(array $tasks)
+    {
+        $this->_tasks = array_merge($this->_tasks, $tasks);
+        return $this;
+    }
+
+    /**
+     * @param AVTask[] $tasks
+     * @return $this
      */
     public function setTasks(array $tasks)
     {
-        foreach ($tasks as $index => $task) {
-            $tasks[$index] = $task->toArray();
+        $this->_tasks = $tasks;
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    private function applyTasks()
+    {
+        $tasks = [];
+        foreach ($this->_tasks as $task) {
+            $tasks[] = $task->toArray();
         }
+
         return $this->setData('tasks', base64_encode(json_encode($tasks, 320)));
     }
 
@@ -90,5 +129,14 @@ class PreTreatmentTaskRequest extends BaseRequest
     protected function getRequireParams()
     {
         return ['accept', 'bucket_name', 'notify_url', 'source', 'tasks'];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function prepare()
+    {
+        parent::prepare();
+        $this->applyTasks();
     }
 }

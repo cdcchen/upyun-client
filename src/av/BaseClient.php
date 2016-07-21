@@ -116,7 +116,7 @@ abstract class BaseClient extends Object
 
         $httpCode = (int)$response->getStatus();
         if ($httpCode !== 200) {
-            throw new RequestException('Http request error.', $httpCode);
+            throw new RequestException('Http request error: ' . $response->getContent(), $httpCode);
         }
 
         $data = $response->getData();

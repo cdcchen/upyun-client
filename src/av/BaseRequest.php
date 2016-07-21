@@ -81,13 +81,15 @@ abstract class BaseRequest extends Object
 
     public function setAuthorization(BaseClient $client)
     {
+        $this->prepare();
+
         $authorization = $this->generateSignature($client->getUsername(), $client->getPassword());
         return $this->setHeader('Authorization', $authorization);
     }
 
     private function setDate()
     {
-        return $this->setHeader('Date', date(gmdate('D, d M Y H:i:s \G\M\T')));
+        return $this->setHeader('Date', gmdate('D, d M Y H:i:s \G\M\T'));
     }
 
     /**
@@ -234,7 +236,6 @@ abstract class BaseRequest extends Object
      */
     public function validate()
     {
-        $this->prepare();
         return $this->checkRequireParams();
     }
 
